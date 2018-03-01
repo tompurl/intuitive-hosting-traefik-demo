@@ -1,0 +1,225 @@
+<!doctype html>
+<html>
+    <head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+	<title>Easier Web Hosting With Traefik</title>
+
+	<link rel="stylesheet" href="css/reveal.css">
+	<link rel="stylesheet" href="css/theme/black.css">
+
+	<!-- Theme used for syntax highlighting of code -->
+	<link rel="stylesheet" href="lib/css/zenburn.css">
+
+	<!-- Printing and PDF exports -->
+	<script>
+	 var link = document.createElement( 'link' );
+	 link.rel = 'stylesheet';
+	 link.type = 'text/css';
+	 link.href = window.location.search.match( /print-pdf/gi ) ? 'css/print/pdf.css' : 'css/print/paper.css';
+	 document.getElementsByTagName( 'head' )[0].appendChild( link );
+	</script>
+    </head>
+    <body>
+	<div class="reveal">
+	    <div class="slides">
+		<section>
+		    <h1>Intuitive Web Hosting With Træfik</h1>
+		    <p>
+			<small>Created by <a href="http://www.tompurl.com">Tom Purl</a> / <a href="http://twitter.com/tompurl">@tompurl</a></small>
+		    </p>
+		</section>
+		<!-- START "how I've always wanted" section -->
+		<section data-background-color="#b3e6ff">
+		    <section>
+			<h3>How I've always wanted to host web apps</h3>
+			<img src="images/pong.gif" />
+			<br />
+			<small>Source: https://i.imgur.com/qt4yZVL.gif</small>
+		    </section>
+		    <section>
+			<ol>
+			    <li>Create your DNS record (e.g. coolstuff.tompurl.com)</li>
+			    <li>Start your app</li>
+			    <li>Register your app with the reverse proxy</li>
+			    <li>Naturally your reverse proxy should force all traffic to use TLS</li>
+			</ol>
+			<aside class="notes">
+			    <p>All of this should be very easy to do in 2017</p>
+			</aside>
+		    </section>
+		</section>
+		<!-- END "how I've always wanted" section -->
+
+		<!-- BEGIN "Real Life" section -->
+		<section data-background-color="#ffdf80">
+		    <section>
+			<h3>Real life</h3>
+			<img src="images/super-meat-boy.gif" />
+			<br />
+			<small>Source: https://goo.gl/GYddb5</small>
+		    </section>
+		    <section>
+			<ol>
+			    <li>Create your DNS record (e.g. coolstuff.tompurl.com)</li>
+			    <li>Start your app</li>
+			</ol>
+			<p>So far, so good!</p>
+		    </section>
+		    <section>
+			<h3>Manually configure your reverse proxy</h3>
+			<ul>
+			    <li>Harder than it sounds</li>
+			    <li>Lots of esoteric gotachas with each tool</li>
+			    <li>Very difficult to automate reliably</li>
+			</ul>
+			<aside class="notes">
+			    <p>This is definitely not intuitive</p>
+			    <p>If you're using Docker you need to reconcile ports</p>
+			</aside>
+		    </section>
+		    <section>
+			<h3>Manually configure your proxy to force TLS</h3>
+			<ul>
+			    <li>Also surprisingly difficult</li>
+			    <li>Apache and Nginx <em>still</em> seem
+				to treat TLS as some sort of esoteric
+				option</li>
+			</ul>
+			<aside class="notes">
+			    <p>TLS should be the default</p>
+			</aside>
+		    </section>
+		</section>
+		<!-- END "Real Life" section -->
+
+		<!-- BEGIN "Pie in the sky" seciton -->
+		<section data-background-color="#e6ccff">
+		    <section>
+			<h3>Pie in the sky with Docker</h3>
+			<img src="images/pie-in-the-sky.jpg" />
+			<small>Source: https://goo.gl/oRdXx8</small>
+			<aside class="notes">
+			    <p>Of <em>course</em> we have to include Docker :-)</p>
+			</aside>
+		    </section>
+		    <section>
+			<p>Docker's far from perfect, but it makes it
+			    really easy to develop, deploy and maintain
+			    complex applications</p>
+		    </section>
+		    <section>
+			<p>Wouldn't it be great to somehow make your
+			    reverse proxy Docker-aware?</p>
+		    </section>
+		</section>
+		<!-- END "Pie in the sky" seciton -->
+
+		<!-- BEGIN "Traefik" seciton -->
+		<section data-background-color="#ffc6b3">
+		    <section>
+			<h3>Træfik!</h3>
+			<img src="images/traefik.logo.png" />
+		    </section>
+		    <section>
+			<h3>Simple Config</h3>
+			<pre>
+			    <code data-trim data-noescape>
+defaultEntryPoints = ["http", "https"]
+[web]
+address = ":8080"
+  [web.auth.basic]
+  users = ["tom:$apr1$.$omethingClever/"]
+[entryPoints]
+  [entryPoints.http]
+  address = ":80"
+    [entryPoints.http.redirect]
+      entryPoint = "https"
+  [entryPoints.https]
+  address = ":443"
+    [entryPoints.https.tls]
+[acme]
+email = "tom@tompurl.com"
+storage = "acme.json"
+entryPoint = "https"
+onHostRule = true
+onDemand = false
+			    </code>
+			</pre>
+		    </section>
+		    <section>
+			<h3>Sane Defaults</h3>
+			<ul>
+			    <li>It's easy to set up most small apps in
+			    a hurry</li>
+			</ul>
+		    </section>
+		    <section>
+			<h3>Hot reloading</h3>
+			<ul>
+			    <li>To update Træfik you add special
+				labels to your container</li>
+			    <li>Træfik listens for newly-started
+				containers and automatically adjusts its
+				config</li>
+
+			</ul>
+		    </section>
+		    <section>
+			<h3>Nice extras</h3>
+			<ul>
+			    <li>Web interface</li>
+			    <li>Let's Encyrpt integration</li>
+			</ul>
+		    </section>
+		    <section>
+			<h3>Demonstration</h3>
+		    </section>
+		    <section>
+			<h3>Other cool things</h3>
+			<ul>
+			    <li>Load balancing</li>
+			    <li>HTTPS</li>
+			    <li>Log export</li>
+			    <li>Support for numerous backends</li>
+			</ul>
+		    </section>
+		</section>
+		<!-- END "Traefik" seciton -->
+
+		<section>
+		    <h3>Resources</h3>
+		    <ul>
+			<li><a href="https://traefik.io/">Træfik Home</a></li>
+			<li><a href="https://docs.traefik.io/user-guide/docker-and-lets-encrypt/">Let's Encrypt & Docker</a></li>
+			<li><a href="https://www.digitalocean.com/community/tutorials/how-to-use-traefik-as-a-reverse-proxy-for-docker-containers-on-ubuntu-16-04">How to Use Traefik as a Reverse Proxy for Docker Containers on Ubuntu 16.04</a></li>
+		    </ul>
+		</section>
+		<section>
+		    <h3>Questions?</h3>
+		</section>
+		<section>
+		    <h3>Thank you!</h3>
+		</section>
+	    </div>
+	</div>
+
+	<script src="lib/js/head.min.js"></script>
+	<script src="js/reveal.js"></script>
+
+	<script>
+	 // More info about config & dependencies:
+	 // - https://github.com/hakimel/reveal.js#configuration
+	 // - https://github.com/hakimel/reveal.js#dependencies
+	 Reveal.initialize({
+	     dependencies: [
+		 { src: 'plugin/markdown/marked.js' },
+		 { src: 'plugin/markdown/markdown.js' },
+		 { src: 'plugin/notes/notes.js', async: true },
+		 { src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } }
+	     ]
+	 });
+	</script>
+    </body>
+</html>
